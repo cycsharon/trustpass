@@ -9,7 +9,7 @@ import { commit, randomSalt } from "./crypto.js";
 import * as ledger from "./ledger.js";
 import { gauge, radar, waterfall, bars, gradeColor } from "./charts.js";
 import { NOVAPAY } from "./presets.js";
-import { qrSvg as makeQr } from "./vendor/qrcode.js";
+import { qrSvg as makeQr } from "./qrcode.js";
 import { CLAUSES } from "./rules.js";
 
 // ---------------- state ----------------
@@ -653,7 +653,7 @@ app.addEventListener("click", async e => {
       break;
     }
     case "sample-policy": {
-      const t = await fetch("samples/novapay-ai-policy.txt").then(r => r.text()).catch(() => "");
+      const t = await fetch("novapay-ai-policy.txt").then(r => r.text()).catch(() => "");
       document.getElementById("policy-text").value = t; S.policyText = t; save(); toast("Sample policy loaded"); break;
     }
     case "run-engine": runEngine(); break;

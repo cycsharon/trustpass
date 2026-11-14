@@ -50,13 +50,13 @@ Data          Rule library (HKMA · SFC · PCPD · PDPO · ISO 42001) · 20-cont
 
 **Everything runs in the browser.** There is no server, no API key and no tracking, and no document leaves the device.
 
-### The AI engine (`js/agents.js`, `js/bm25.js`)
+### The AI engine (`agents.js`, `bm25.js`)
 - **Document Agent:** splits a policy into sentences and ranks them against each of the 20 controls with **Okapi BM25** (a custom tokeniser and stemmer, with generic words filtered out). A match must hit at least two distinctive terms.
 - **Rule-mapping Agent:** BM25 retrieval over a library of 25 paraphrased HK rule clauses, **constrained to the regulators mapped to that domain**, so every finding cites a source.
 - **Checking Agent ("AI checks AI"):** rejects evidence that describes a gap or a future plan ("not yet", "planned to"), while correctly accepting prohibitions such as "suppliers are *not permitted* to train on our data". It also flags contradictions (e.g. agents have limits but no kill switch) and unverified high-weight claims.
 - **Human sign-off:** no Passport is issued without an analyst approving it.
 
-### The scoring model (`js/scoring.js`)
+### The scoring model (`scoring.js`)
 ```
 AI Trust Score = Σ_d  weight_d × raw score_d × evidence factor_d
 ```
@@ -66,14 +66,14 @@ AI Trust Score = Σ_d  weight_d × raw score_d × evidence factor_d
 - **Explainability:** the model is additive, so each control's contribution is exactly its **Shapley (SHAP) value** against an all-"No" baseline. The app shows these as reason codes.
 - **Fairness:** a firm with no AI agents answers "No agents" (N/A) and isn't penalised for controls that don't apply.
 
-### The trust layer (`js/crypto.js`, `js/credential.js`, `js/ledger.js`)
+### The trust layer (`crypto.js`, `credential.js`, `ledger.js`)
 - **Passport = W3C Verifiable Credential 2.0**, signed by the issuing bank with **ECDSA P-256** (Web Crypto API) over JCS-style canonical JSON.
 - **Proving without sharing:** every control answer is sealed as a **salted SHA-256 commitment**. All 20 commitments form a **Merkle tree** and only the root goes into the signed Passport. The SME can later reveal chosen controls with Merkle inclusion proofs. The bank can check them, but learns nothing about the rest.
 - **Threshold proofs:** for "fairness ratio ≥ 0.8" the SME commits to the measured value; the Passport records only *PASS*.
 - **Ledger:** a hash-chained log of every ISSUE, VERIFY and REVOKE event. It stores only hashes and event data, never personal data. Editing any past block breaks the chain, and the app shows where.
 - **QR codes:** the credential is compressed (deflate) and sent in a compact form, so the whole signed Passport fits in a QR code. No server lookup is needed to check the signature.
 
-### Trust-Linked Credit (`js/scoring.js → creditTerms`)
+### Trust-Linked Credit (`scoring.js → creditTerms`)
 ```
 Expected loss = PD × LGD × Exposure     base PD 3.0% · LGD 45% · PD multiplier A 0.80, B 0.90, C 1.00, D 1.15
 ```
@@ -97,33 +97,35 @@ It's a static site, so there's nothing to install.
 
 - **GitHub Pages:** Settings → Pages → *Deploy from a branch* → `main` / root.
 - **Locally:** `python3 -m http.server 8000`, then open `http://localhost:8000`. ES modules don't load from `file://`.
-- **Tests (Node 18+):** `node tests/run-tests.mjs`. 34 tests cover the scoring formula, the credit maths, the agents, Merkle proofs, forged signatures, expiry, revocation and ledger tampering.
+- **Tests (Node 18+):** `node run-tests.mjs`. 34 tests cover the scoring formula, the credit maths, the agents, Merkle proofs, forged signatures, expiry, revocation and ledger tampering.
 
 ## Project structure
 
+All files sit at the top level so GitHub Pages can serve them directly.
+
 ```
 index.html              App shell
-css/style.css           Styles
-js/app.js               Views, routing, interactions
-js/config.js            Weights, grades, credit assumptions, issuer registry
-js/rules.js             HK rule-clause library + 20-control question bank
-js/bm25.js              Tokeniser, stemmer, BM25 ranking
-js/agents.js            Document, Rule-mapping and Checking agents
-js/scoring.js           AI Trust Score, Shapley reason codes, what-if, credit terms
-js/crypto.js            SHA-256, ECDSA, commitments, Merkle tree, compression
-js/credential.js        Issue / verify / disclose / revoke Passports
-js/ledger.js            Hash-chained audit ledger
-js/charts.js            Dependency-free SVG charts
-js/presets.js           Demo company (NovaPay Ltd, fictional)
-js/vendor/qrcode.js     QR encoder (MIT, Kazuhiko Arase), bundled for offline use
-samples/                Sample AI policy for the demo
-tests/run-tests.mjs     Automated tests
+style.css               Styles
+app.js                  Views, routing, interactions
+config.js               Weights, grades, credit assumptions, issuer registry
+rules.js                HK rule-clause library + 20-control question bank
+bm25.js                 Tokeniser, stemmer, BM25 ranking
+agents.js               Document, Rule-mapping and Checking agents
+scoring.js              AI Trust Score, Shapley reason codes, what-if, credit terms
+crypto.js               SHA-256, ECDSA, commitments, Merkle tree, compression
+credential.js           Issue / verify / disclose / revoke Passports
+ledger.js               Hash-chained audit ledger
+charts.js               Dependency-free SVG charts
+presets.js              Demo company (NovaPay Ltd, fictional)
+qrcode.js               QR encoder (MIT, Kazuhiko Arase), bundled for offline use
+novapay-ai-policy.txt   Sample AI policy for the demo
+run-tests.mjs           Automated tests
 ```
 
 ## Notes
 
 - NovaPay Ltd is fictional. Rule summaries are short paraphrases written for this prototype. They are **not legal text or legal advice**.
-- The issuer private key in `js/config.js` is a **demo key**, included so the prototype can issue credentials without a server.
+- The issuer private key in `config.js` is a **demo key**, included so the prototype can issue credentials without a server.
 - Built from scratch during the BUHack 2.0 hacking window (from 10:00, 13 Nov 2026).
 
 ## License

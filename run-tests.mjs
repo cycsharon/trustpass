@@ -2,13 +2,13 @@
 // Tests the scoring engine, retrieval agents, cryptography and Passport verification.
 
 import { readFileSync } from "node:fs";
-import { computeScore, gradeFor, creditTerms, topRisks, simulateFixes } from "../js/scoring.js";
-import { documentAgent, ruleMappingAgent, runDocumentPipeline, checkingAgent } from "../js/agents.js";
-import { merkleTree, merkleProof, merkleVerify, packJSON, unpackJSON, canonicalize } from "../js/crypto.js";
-import { issuePassport, verifyPayload, createDisclosures, revokePassport } from "../js/credential.js";
-import { verifyChain, tamper, reset } from "../js/ledger.js";
-import { NOVAPAY } from "../js/presets.js";
-import { QUESTIONS } from "../js/rules.js";
+import { computeScore, gradeFor, creditTerms, topRisks, simulateFixes } from "./scoring.js";
+import { documentAgent, ruleMappingAgent, runDocumentPipeline, checkingAgent } from "./agents.js";
+import { merkleTree, merkleProof, merkleVerify, packJSON, unpackJSON, canonicalize } from "./crypto.js";
+import { issuePassport, verifyPayload, createDisclosures, revokePassport } from "./credential.js";
+import { verifyChain, tamper, reset } from "./ledger.js";
+import { NOVAPAY } from "./presets.js";
+import { QUESTIONS } from "./rules.js";
 
 let pass = 0, fail = 0;
 const t = (name, cond, info = "") => {
@@ -49,7 +49,7 @@ t("bank keeps HK$600 buffer", A.bankBuffer === 600);
 t("grade D not eligible", !creditTerms("D").eligible);
 
 console.log("Agents");
-const policy = readFileSync(new URL("../samples/novapay-ai-policy.txt", import.meta.url), "utf8");
+const policy = readFileSync(new URL("./novapay-ai-policy.txt", import.meta.url), "utf8");
 const doc = documentAgent(policy);
 console.log("    findings:", doc.findings.map(f => f.qid).join(", "));
 t("document agent finds evidence for Q1, Q3, Q5, Q7", ["q1", "q3", "q5", "q7"].every(q => doc.findings.some(f => f.qid === q)));
