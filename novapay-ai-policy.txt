@@ -1,0 +1,29 @@
+NovaPay Ltd - AI Governance Policy (version 2.1)
+Approved by the Board of Directors on 3 March 2027. Next review: March 2028.
+
+1. Purpose
+This written AI policy, approved by management and the board, sets out how NovaPay builds, buys and runs AI systems.
+
+2. Accountability
+The Chief Technology Officer is the named person accountable for each AI system, and every model has a responsible owner recorded in the AI register.
+We keep an up-to-date AI inventory that lists every AI model, its purpose and its AI supplier, reviewed every quarter.
+
+3. Data and privacy
+Our data map records which personal data each model uses and the purpose of collection, and our personal information collection statement (PICS) now covers AI.
+Under our contracts, AI suppliers are not permitted to use our customers' data for training their models.
+
+4. Model risk
+Every model is tested for accuracy against a hold-out set before launch, and the signed test report is kept on file.
+Production models are monitored on a drift dashboard, which raises an alert when performance falls below threshold.
+
+5. Security and suppliers
+Each AI supplier passes a due diligence assessment covering security and data use before we sign a contract.
+Access to models and training data is restricted to named roles, protected by MFA, and every access is logged.
+We have not yet run a red-team exercise on our chatbot; one is planned for Q3 2027.
+
+6. Human oversight
+A trained analyst reviews every high-impact AI decision, such as blocking a merchant payment, before it reaches the customer.
+
+7. Transparency and incidents
+Customers are informed that they are chatting with an AI assistant through a notice at the start of every chat.
+All AI incidents are recorded in an AI incident log with the impact, the fix and the date closed.
