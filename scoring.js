@@ -8,7 +8,7 @@
 // Because the model is additive, each control's contribution is exactly its
 // Shapley value relative to an all-"No" baseline - the "SHAP reason codes".
 
-import { DOMAINS, ANSWER_SCORES, EVIDENCE, GRADES, CREDIT } from "./config.js";
+import { DOMAINS, ANSWER_SCORES, EVIDENCE, GRADES } from "./config.js";
 import { QUESTIONS } from "./rules.js";
 
 const round1 = x => Math.round(x * 10) / 10;
@@ -32,6 +32,7 @@ export function computeScore(answers = {}, evidence = {}) {
     for (const q of qs) {
       const a = answers[q.id];
       if (a === "na") {
+        answered++;
         controls.push({ qid: q.id, domain: d.key, na: true, contribution: 0, max: 0, gap: 0 });
         continue;
       }
@@ -70,6 +71,12 @@ export function computeScore(answers = {}, evidence = {}) {
   };
 }
 
+// Action plan = every control with points left on the table, biggest gain first.
+export function actionPlan(result) {
+  return result.controls.filter(c => !c.na && c.gap > 0.01)
+    .sort((a, b) => b.gap - a.gap || a.qid.localeCompare(b.qid));
+}
+
 // Top risks = controls with the most points left on the table.
 export function topRisks(result, k = 3) {
   return result.controls.filter(c => !c.na && c.gap > 0.01)
@@ -86,24 +93,4 @@ export function simulateFixes(answers, evidence, qids, level = "document") {
     if (EVIDENCE[level].factor > EVIDENCE[cur].factor) e[id] = { ...(e[id] || {}), level };
   }
   return computeScore(a, e);
-}
-
-// Trust-Linked Credit: expected loss = PD x LGD x exposure.
-export function creditTerms(grade, facility = 3_000_000) {
-  const gInfo = GRADES.find(g => g.grade === grade) || GRADES[2];
-  const c = GRADES.find(g => g.grade === "C");
-  const pd = CREDIT.basePD * gInfo.pdMult;
-  const elBp = pd * CREDIT.lgd * 10000;
-  const elBpC = CREDIT.basePD * c.pdMult * CREDIT.lgd * 10000;
-  const elHkd = facility * pd * CREDIT.lgd;
-  const elHkdC = facility * CREDIT.basePD * CREDIT.lgd;
-  const marginBp = gInfo.marginBp;
-  const smeSaving = marginBp ? -marginBp / 10000 * facility : 0;
-  return {
-    grade, pd, elBp: round1(elBp), elSavingBp: round1(elBpC - elBp),
-    elHkd: Math.round(elHkd), bankElSaving: Math.round(elHkdC - elHkd),
-    marginBp, smeSaving: Math.round(smeSaving),
-    bankBuffer: Math.round(elHkdC - elHkd - smeSaving),
-    eligible: marginBp != null,
-  };
 }

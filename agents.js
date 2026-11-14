@@ -90,28 +90,30 @@ export function checkingAgent(answers, evidence) {
   return flags;
 }
 
-// ---------- Full pipeline over an uploaded document ----------
-export function runDocumentPipeline(text, answers, evidence) {
+// ---------- Full pipeline: read a document and suggest answers ----------
+// Returns suggestions the user can accept or ignore. Nothing changes until they accept.
+//   found: evidence the control is in place  -> suggest "Yes" backed by the document
+//   gaps:  the document says it is NOT done yet -> suggest "No" and add it to the action plan
+export function suggestFromDocument(text, answers = {}, evidence = {}) {
   const t = [performance.now()];
   const doc = documentAgent(text); t.push(performance.now());
   const mapped = doc.findings.map(f => ({ ...f, rules: ruleMappingAgent(f.qid) })); t.push(performance.now());
   const checked = mapped.map(f => ({ ...f, check: checkEvidence(f) })); t.push(performance.now());
 
-  const updates = {};
-  const suggestions = [];
+  const found = [], gaps = [];
   for (const f of checked) {
-    const a = answers[f.qid];
-    const cur = evidence[f.qid]?.level || "self";
-    if (!f.check.ok) { updates[f.qid] = { ...(evidence[f.qid] || {}), rejected: f.check.reason }; continue; }
-    if (a === "yes" || a === "partly") {
-      if (cur === "self") updates[f.qid] = { level: "document", source: "Policy document", citation: f.sentence, confidence: f.confidence };
+    const cur = answers[f.qid] || null;
+    const level = evidence[f.qid]?.level || "self";
+    if (f.check.ok) {
+      let action = "set-yes";
+      if (cur === "yes" || cur === "partly") action = level === "self" ? "add-evidence" : "none";
+      found.push({ qid: f.qid, sentence: f.sentence, matched: f.matched, confidence: f.confidence, rules: f.rules, current: cur, action });
     } else {
-      suggestions.push({ qid: f.qid, sentence: f.sentence, msg: `Your document suggests this control exists, but you answered "${a || "unanswered"}". Review your answer.` });
+      gaps.push({ qid: f.qid, sentence: f.sentence, reason: f.check.reason, rules: f.rules, current: cur, action: cur === "no" ? "none" : "set-no" });
     }
   }
+  const seen = new Set(checked.map(f => f.qid));
+  const notMentioned = QUESTIONS.filter(q => !seen.has(q.id)).map(q => q.id);
   const ms = i => Math.max(1, Math.round(t[i + 1] - t[i]));
-  return {
-    sentences: doc.sentences, findings: checked, updates, suggestions,
-    timings: { read: ms(0), retrieve: ms(1), check: ms(2) },
-  };
+  return { sentences: doc.sentences, found, gaps, notMentioned, timings: { read: ms(0), retrieve: ms(1), check: ms(2) } };
 }

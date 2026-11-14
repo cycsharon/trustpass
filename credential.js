@@ -126,33 +126,33 @@ export async function verifyPayload(payload, disclosurePayload = null, { logToLe
   let vc;
   let disclosures = [];
 
-  try { vc = fromCompact(await unpackJSON(payload)); step("Decode credential", true, "W3C Verifiable Credential (AITrustPassport)"); }
-  catch { step("Decode credential", false, "Not a readable TrustPass credential"); return finish("invalid"); }
+  try { vc = fromCompact(await unpackJSON(payload)); step("Decode credential", true, "AI Trust Passport (W3C Verifiable Credential)"); }
+  catch { step("Decode credential", false, "This is not a TrustPass Passport"); return finish("invalid"); }
 
   const { proof, ...unsigned } = vc;
   const issuer = TRUSTED_ISSUERS[proof?.verificationMethod];
-  if (!issuer) { step("Trusted issuer", false, "Signing key is not in the trusted issuer registry"); return finish("invalid"); }
+  if (!issuer) { step("Trusted issuer", false, "Not signed by a recognised partner bank"); return finish("invalid"); }
   step("Trusted issuer", true, issuer.name);
 
   const pub = await importPublic(issuer.publicJwk);
   const sigOk = await verify(pub, canonicalize(unsigned), proof.proofValue);
-  step("Issuer signature (ECDSA P-256)", sigOk, sigOk ? "Signature matches - contents unchanged since issue" : "Signature does not match - credential was altered or forged");
+  step("Issuer signature (ECDSA P-256)", sigOk, sigOk ? "The bank's digital signature matches, so nothing has been edited" : "The signature doesn't match: the Passport was edited or faked");
   if (!sigOk) return finish("invalid");
 
   const from = new Date(vc.validFrom), until = new Date(vc.validUntil);
   const inWindow = now >= from && now <= until;
-  step("Validity period", inWindow, `Valid ${vc.validFrom.slice(0, 10)} to ${vc.validUntil.slice(0, 10)}`);
+  step("Validity period", inWindow, `Valid from ${vc.validFrom.slice(0, 10)} to ${vc.validUntil.slice(0, 10)}`);
   if (!inWindow) return finish("expired");
 
   const credentialHash = await sha256Hex(canonicalize(vc));
   const events = await ledger.findByRef(vc.id);
   const issued = events.find(e => e.type === "ISSUE" && e.data.credentialHash === credentialHash);
-  if (issued) step("Ledger anchor", true, `Hash found in block #${issued.index}`);
-  else step("Ledger anchor", true, "Not on this device's ledger node (demo runs one node per browser)", "warn");
+  if (issued) step("Ledger anchor", true, `Found in audit log entry #${issued.index}`);
+  else step("Ledger anchor", true, "This demo keeps its audit log in each browser, so it can't be looked up on this device", "warn");
 
   const revoked = events.find(e => e.type === "REVOKE");
-  if (revoked) { step("Revocation check", false, `Revoked in block #${revoked.index}: ${revoked.data.reason}`); return finish("revoked"); }
-  step("Revocation check", true, issued ? "Not revoked" : "No revocation found on this node", issued ? "ok" : "warn");
+  if (revoked) { step("Revocation check", false, `Withdrawn (audit log entry #${revoked.index}): ${revoked.data.reason}`); return finish("revoked"); }
+  step("Revocation check", true, issued ? "Still valid, not withdrawn" : "No withdrawal found on this device", issued ? "ok" : "warn");
 
   if (disclosurePayload) {
     try {
@@ -163,9 +163,9 @@ export async function verifyPayload(payload, disclosurePayload = null, { logToLe
         disclosures.push({ qid: d.q, answer: d.a, level: d.l, evidenceHash: d.e, ok });
       }
       const allOk = disclosures.every(d => d.ok);
-      step("Disclosed controls (Merkle proofs)", allOk, `${disclosures.filter(d => d.ok).length} of ${disclosures.length} controls proven against the signed root`);
+      step("Disclosed controls (Merkle proofs)", allOk, `${disclosures.filter(d => d.ok).length} of ${disclosures.length} shared answers match the signed Passport`);
       if (!allOk) return finish("invalid");
-    } catch { step("Disclosed controls (Merkle proofs)", false, "Disclosure data unreadable"); return finish("invalid"); }
+    } catch { step("Disclosed controls (Merkle proofs)", false, "The shared answers couldn't be read"); return finish("invalid"); }
   }
 
   return finish(steps.some(s => s.level === "warn") ? "valid-unanchored" : "valid");

@@ -2,13 +2,13 @@
 // Tests the scoring engine, retrieval agents, cryptography and Passport verification.
 
 import { readFileSync } from "node:fs";
-import { computeScore, gradeFor, creditTerms, topRisks, simulateFixes } from "./scoring.js";
-import { documentAgent, ruleMappingAgent, runDocumentPipeline, checkingAgent } from "./agents.js";
+import { computeScore, gradeFor, topRisks, simulateFixes, actionPlan } from "./scoring.js";
+import { documentAgent, ruleMappingAgent, suggestFromDocument, checkingAgent } from "./agents.js";
 import { merkleTree, merkleProof, merkleVerify, packJSON, unpackJSON, canonicalize } from "./crypto.js";
 import { issuePassport, verifyPayload, createDisclosures, revokePassport } from "./credential.js";
 import { verifyChain, tamper, reset } from "./ledger.js";
 import { NOVAPAY } from "./presets.js";
-import { QUESTIONS } from "./rules.js";
+import { QUESTIONS, GUIDES } from "./rules.js";
 
 let pass = 0, fail = 0;
 const t = (name, cond, info = "") => {
@@ -40,13 +40,8 @@ t("Shapley contributions add up to the score", near(shapSum, m6.total));
 t("top risks are the biggest gaps", topRisks(d1, 3).length === 3);
 t("fixing top risks raises the score", simulateFixes(NOVAPAY.day1, {}, topRisks(d1).map(r => r.qid)).total > d1.total);
 
-console.log("Trust-Linked Credit (proposal Table 9/10)");
-const A = creditTerms("A", 3_000_000), C = creditTerms("C", 3_000_000);
-t("grade A expected loss 108 bp", A.elBp === 108);
-t("grade C expected loss 135 bp", C.elBp === 135);
-t("grade A SME saves HK$7,500/yr on HK$3M", A.smeSaving === 7500);
-t("bank keeps HK$600 buffer", A.bankBuffer === 600);
-t("grade D not eligible", !creditTerms("D").eligible);
+t("action plan lists every gap", actionPlan(d1).length === d1.controls.filter(c => !c.na && c.gap > 0.01).length);
+t("every question has step-by-step guidance", QUESTIONS.every(q => GUIDES[q.id]?.steps?.length >= 2 && GUIDES[q.id].proofFile));
 
 console.log("Agents");
 const policy = readFileSync(new URL("./novapay-ai-policy.txt", import.meta.url), "utf8");
@@ -54,12 +49,16 @@ const doc = documentAgent(policy);
 console.log("    findings:", doc.findings.map(f => f.qid).join(", "));
 t("document agent finds evidence for Q1, Q3, Q5, Q7", ["q1", "q3", "q5", "q7"].every(q => doc.findings.some(f => f.qid === q)));
 t("document agent does not invent evidence for Q8 (bias)", !doc.findings.some(f => f.qid === "q8"));
-const run = runDocumentPipeline(policy, NOVAPAY.day1, {});
-const q12 = run.findings.find(f => f.qid === "q12");
-t("checking agent rejects 'not yet run a red-team'", q12 && !q12.check.ok, JSON.stringify(q12?.check));
-const q5 = run.findings.find(f => f.qid === "q5");
-t("checking agent accepts prohibition clause for Q5", q5 && q5.check.ok);
-t("pipeline upgrades evidence", Object.values(run.updates).some(u => u.level === "document"));
+const run = suggestFromDocument(policy, {}, {});
+const q12 = run.gaps.find(g => g.qid === "q12");
+t("checking agent turns 'not yet run a red-team' into a gap", q12 && q12.action === "set-no", JSON.stringify(q12));
+const q5 = run.found.find(f => f.qid === "q5");
+t("prohibition clause for Q5 counts as evidence", q5 && q5.action === "set-yes");
+t("unanswered questions get suggested 'Yes'", run.found.length >= 10 && run.found.every(f => f.action === "set-yes"));
+const run2 = suggestFromDocument(policy, { q1: "yes", q12: "yes" }, { q1: { level: "crypto" } });
+t("already-proven answer needs no change", run2.found.find(f => f.qid === "q1").action === "none");
+t("a 'Yes' contradicted by the document is flagged", run2.gaps.find(g => g.qid === "q12").action === "set-no");
+t("questions not in the document are listed", run.notMentioned.includes("q8"));
 for (const q of QUESTIONS) {
   const r = ruleMappingAgent(q.id);
   if (r.length < 1) t("rule mapping for " + q.id, false);

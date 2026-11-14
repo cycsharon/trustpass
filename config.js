@@ -2,7 +2,7 @@
 // Change ISSUER_NAME to re-brand the issuing bank (e.g. for a bank-specific pitch).
 
 export const APP_NAME = "TrustPass";
-export const APP_TAGLINE = "An AI Trust Passport for Hong Kong's tech start-ups";
+export const APP_TAGLINE = "Prove your AI is safe, without handing over your data";
 
 export const ISSUER = {
   id: "did:web:issuer.trustpass.example",
@@ -45,20 +45,17 @@ export const DOMAINS = [
 export const ANSWER_SCORES = { yes: 100, partly: 50, no: 0 };
 
 export const EVIDENCE = {
-  self:     { label: "Self-declared",          factor: 0.60 },
-  document: { label: "Backed by documents",    factor: 0.85 },
-  crypto:   { label: "Proven cryptographically", factor: 1.00 },
+  self:     { label: "Your word",       short: "Your word", factor: 0.60, desc: "You answered, but haven't shown anything yet" },
+  document: { label: "Document found",  short: "Document",  factor: 0.85, desc: "Our AI found it in a document you uploaded" },
+  crypto:   { label: "Proof sealed",    short: "Proof",     factor: 1.00, desc: "You attached a proof file; its fingerprint is sealed in your Passport" },
 };
 
 export const GRADES = [
-  { grade: "A", min: 80, meaning: "Strong AI governance, verified", pdMult: 0.80, marginBp: -25 },
-  { grade: "B", min: 65, meaning: "Good, with some gaps or weaker evidence", pdMult: 0.90, marginBp: -10 },
-  { grade: "C", min: 50, meaning: "Basic controls; needs a fix plan", pdMult: 1.00, marginBp: 0 },
-  { grade: "D", min: 0,  meaning: "Serious gaps: fix plan first", pdMult: 1.15, marginBp: null },
+  { grade: "A", min: 80, meaning: "Strong AI governance, backed by evidence" },
+  { grade: "B", min: 65, meaning: "Good, with a few gaps or weaker evidence" },
+  { grade: "C", min: 50, meaning: "Basic controls in place; follow the action plan" },
+  { grade: "D", min: 0,  meaning: "Important gaps; start with the action plan" },
 ];
-
-// Trust-Linked Credit assumptions (to be calibrated in a pilot).
-export const CREDIT = { basePD: 0.03, lgd: 0.45 };
 
 export const PASSPORT_VALID_MONTHS = 24;
 export const RECHECK_DAYS = 90;

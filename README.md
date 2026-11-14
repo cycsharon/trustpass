@@ -1,131 +1,124 @@
 # TrustPass: an AI Trust Passport for Hong Kong's tech start-ups
 
-> **Prove your AI is safe. Borrow for less.**
-> TrustPass scans a start-up's AI governance against Hong Kong rules, lets it prove its controls **without sharing the data behind them**, and issues a bank-signed **AI Trust Passport** that any bank or investor can verify in seconds. A better grade means a cheaper loan.
+> **Prove your AI is safe, without handing over your data.**
+> TrustPass checks a start-up's AI governance against Hong Kong rules in about 15 minutes, gives it a step-by-step action plan for every gap, lets it prove its answers **without uploading its files**, and issues a bank-signed **AI Trust Passport** it can share with banks, investors and clients in one link.
 
-**Live demo:** `https://<your-github-username>.github.io/<repo-name>/`
-**Theme:** FinTech · **Track:** Tertiary · **Built for:** BUHack 2.0 (13 to 15 Nov 2026)
+**Live demo:** https://cycsharon.github.io/trustpass/
+**Theme:** FinTech · **Track:** Tertiary · **Built for:** BUHack 2.0 (13–15 Nov 2026)
 
 ---
 
 ## The problem
 
-- Nearly every young tech company in Hong Kong now builds on AI. In one survey, **73.1% of HK FinTechs** said they already use it.
-- When one of these firms asks a bank for a loan or a partnership, the bank can't easily check whether the firm's AI, data and suppliers are under control, even though the **HKMA, SFC and PCPD** all expect that kind of oversight.
-- So the start-up fills in a **140-question AI questionnaire**, hands over private data, waits weeks, and does it all again for the next bank.
-- HKCERT handled **twice as many cyber incidents in 2025 as in 2023** (15,877). AI and data risk is credit risk, but today nobody prices it.
+- Nearly every young tech company in Hong Kong now builds on AI: **73.1% of surveyed HK FinTechs** already use it.
+- Banks, investors and large clients all need to know the company's AI is under control, which the **HKMA, SFC and PCPD** expect them to check.
+- So start-ups fill in long AI questionnaires (often **140 questions**), hand over private documents, and repeat it for every bank, investor and client.
+- HKCERT handled **twice as many cyber incidents in 2025 as in 2023** (15,877). AI and data risk keeps growing, but there is no simple, trusted way to show you manage it.
 
-**Nothing on the market turns verified AI governance into better loan terms.**
+## The solution
 
-## The solution: five steps
-
-| Step | What happens | Where in the app |
+| Step | What the start-up does | In the app |
 |---|---|---|
-| **1 Scan** | 20 questions across 6 domains, each mapped to an HKMA, SFC, PCPD, PDPO or ISO/IEC 42001 rule | `#/scan` |
-| **2 Prove** | An in-browser AI engine reads your policy and cites the evidence; files are fingerprinted (SHA-256), never uploaded | `#/evidence` |
-| **3 Score** | AI Trust Score 0 to 100, grade A to D, top-3 risks with a fix plan, a what-if simulator, and SHAP reason codes | `#/results` |
-| **4 Sign-off** | *People decide*: an analyst reviews the Checking Agent's flags before anything is issued | `#/review` |
-| **5 Passport** | W3C Verifiable Credential signed with ECDSA P-256, a QR code, selective disclosure and revocation | `#/passport` |
-| **Bank view** | Verify in milliseconds: signature, validity, ledger anchor, revocation, Merkle proofs | `#/verify`, `#/bank` |
-| **Credit** | Grade, then probability of default, then expected loss, then a margin step-down (grade A: −25 bp) | `#/credit` |
+| **1 Answer** | 20 yes/partly/no questions in 6 areas, each linked to an HK rule, **or upload a policy and let the AI suggest the answers** (with the quote it found) | `#/scan` |
+| **2 Prove** | Attach proof files. The browser makes a fingerprint (SHA-256); **the file is never uploaded** | `#/evidence` |
+| **3 Results** | Score 0–100, grade A–D, and a **full action plan**: steps, effort, what to keep as proof, and the HK rule, for every gap | `#/results` |
+| **4 Review** | A person at the partner bank checks the answers and the AI's flags, then approves | `#/review` |
+| **5 Passport** | A signed Passport with a QR code. Share all of it, or prove just selected answers | `#/passport` |
+| **Check** | Anyone the start-up shares with sees in milliseconds whether it's genuine, valid and not withdrawn | `#/verify` |
+
+**Who does what:** TrustPass builds and runs the software · the **partner bank** reviews and signs Passports · the **start-up** owns its Passport and decides who sees it · banks, investors and clients only see it if the start-up shares it.
+
+**Scope:** TrustPass assesses **AI governance only**. It uses no financial data and makes no statement about a company's creditworthiness.
 
 ## Demo in 60 seconds
 
-1. Open the live demo and click **NovaPay · Day 1**. Score **38.4 (D)**: answers from memory, nothing proven.
-2. Go to **Prove**, click **Load NovaPay sample policy**, then **Run AI engine**. Twelve controls get document evidence with rule citations, and the Checking Agent **rejects** *"We have not yet run a red-team exercise"*. Score rises to about **53 (C)**.
-3. Click **Demo: prove 3 key controls** to add cryptographic proofs. The score rises again.
-4. **Sign-off**: tick the checks, enter an analyst name, and click **Approve & issue**.
-5. **Passport**: scan the QR with a phone and the bank verification runs on the phone. Then click **Simulate failed re-check: revoke** and verify again: ✕ revoked.
-6. **Ledger** → **Simulate tampering**: the hash chain shows exactly which block was altered.
+1. Click **NovaPay · first check**: 38.4, grade D, with an action plan.
+2. Or start fresh: enter a company name, then in step 1 click **Use NovaPay's sample policy → Read my document → Accept all**. The AI fills in 12 answers with quotes and catches *"We have not yet run a red-team exercise"* as a gap.
+3. **Prove:** enter a measured value (e.g. 98% human review) and click **Seal result**, or attach any file as proof.
+4. **Results:** open each action-plan item for the steps.
+5. **Review → Approve → Passport:** scan the QR code with a phone, or tick a few answers and create a link that shows only those.
+6. Click **Try it: simulate a failed re-check**: the Passport is withdrawn and every check now shows "No longer valid".
+7. **Audit log → Try it: secretly edit an entry**: the chain shows exactly which entry was changed.
 
 ## How it works
 
 ```
-Channels      SME web app · Bank dashboard · Verify link / QR
-Applications  Trust Scan · Evidence Vault · Trust Passport · Trust-Linked Credit
-AI engine     Document Agent → Rule-mapping Agent → Scoring model → Checking Agent → Human sign-off
-Trust layer   ECDSA P-256 signatures · W3C VC 2.0 · Merkle-tree selective disclosure · Hash-chain ledger
-Data          Rule library (HKMA · SFC · PCPD · PDPO · ISO 42001) · 20-control question bank
+Screens       Start-up app · Partner bank view · Share link / QR
+Features      Trust Scan · AI auto-fill · Proof vault · Action plan · Passport
+AI engine     Document Agent → Rule-mapping Agent → Scoring model → Checking Agent → Human review
+Trust layer   ECDSA P-256 signatures · W3C Verifiable Credential · Merkle-tree selective disclosure · Hash-chain audit log
+Data          HK rule library (HKMA · SFC · PCPD · PDPO · ISO 42001) · 20 questions with step-by-step guidance
 ```
 
-**Everything runs in the browser.** There is no server, no API key and no tracking, and no document leaves the device.
+**Everything runs in the browser.** No server, no API key, no tracking; no document leaves the device.
 
-### The AI engine (`agents.js`, `bm25.js`)
-- **Document Agent:** splits a policy into sentences and ranks them against each of the 20 controls with **Okapi BM25** (a custom tokeniser and stemmer, with generic words filtered out). A match must hit at least two distinctive terms.
-- **Rule-mapping Agent:** BM25 retrieval over a library of 25 paraphrased HK rule clauses, **constrained to the regulators mapped to that domain**, so every finding cites a source.
-- **Checking Agent ("AI checks AI"):** rejects evidence that describes a gap or a future plan ("not yet", "planned to"), while correctly accepting prohibitions such as "suppliers are *not permitted* to train on our data". It also flags contradictions (e.g. agents have limits but no kill switch) and unverified high-weight claims.
-- **Human sign-off:** no Passport is issued without an analyst approving it.
+### AI engine (`agents.js`, `bm25.js`)
+- **Document Agent:** splits a document into sentences and ranks them against each of the 20 questions with **Okapi BM25** (custom tokeniser and stemmer; common words filtered out; a match needs at least two distinctive terms).
+- **Rule-mapping Agent:** BM25 retrieval over 25 paraphrased HK rule summaries, **limited to the regulators relevant to that area**, so every suggestion cites a source.
+- **Checking Agent ("AI checks AI"):** turns sentences like "not yet" or "planned for next year" into **gaps instead of evidence**, while accepting prohibitions such as "suppliers are *not permitted* to train on our data". It also flags contradictions between answers.
+- **Suggestions, not decisions:** the AI only suggests answers; the user accepts or ignores each one, and a person reviews before any Passport is issued.
 
-### The scoring model (`scoring.js`)
+### Scoring (`scoring.js`)
 ```
-AI Trust Score = Σ_d  weight_d × raw score_d × evidence factor_d
+Score = Σ over areas ( area weight × answer × proof level )
 ```
-- Six domains: Governance 20%, Data & privacy 20%, Model risk 20%, Cyber & third party 15%, Human oversight 15%, Transparency 10%.
-- Evidence factor: **0.60** self-declared · **0.85** backed by documents · **1.00** proven cryptographically. Proving things is worth points, which makes the score harder to game.
-- Grades: **A** ≥ 80 · **B** 65 to 79 · **C** 50 to 64 · **D** < 50.
-- **Explainability:** the model is additive, so each control's contribution is exactly its **Shapley (SHAP) value** against an all-"No" baseline. The app shows these as reason codes.
-- **Fairness:** a firm with no AI agents answers "No agents" (N/A) and isn't penalised for controls that don't apply.
+- Areas: Governance 20 · Data & privacy 20 · Model risk 20 · Cyber & third party 15 · Human oversight 15 · Transparency 10.
+- Answer: Yes 100% · Partly 50% · No 0%. Proof: your word **60%** · document found **85%** · proof sealed **100%**.
+- Grades: **A** ≥ 80 · **B** 65–79 · **C** 50–64 · **D** < 50.
+- The model is additive, so every question's points are exact and explainable (they are its Shapley values).
+- Firms without AI agents answer "We don't use AI agents" and aren't marked down.
 
-### The trust layer (`crypto.js`, `credential.js`, `ledger.js`)
-- **Passport = W3C Verifiable Credential 2.0**, signed by the issuing bank with **ECDSA P-256** (Web Crypto API) over JCS-style canonical JSON.
-- **Proving without sharing:** every control answer is sealed as a **salted SHA-256 commitment**. All 20 commitments form a **Merkle tree** and only the root goes into the signed Passport. The SME can later reveal chosen controls with Merkle inclusion proofs. The bank can check them, but learns nothing about the rest.
-- **Threshold proofs:** for "fairness ratio ≥ 0.8" the SME commits to the measured value; the Passport records only *PASS*.
-- **Ledger:** a hash-chained log of every ISSUE, VERIFY and REVOKE event. It stores only hashes and event data, never personal data. Editing any past block breaks the chain, and the app shows where.
-- **QR codes:** the credential is compressed (deflate) and sent in a compact form, so the whole signed Passport fits in a QR code. No server lookup is needed to check the signature.
-
-### Trust-Linked Credit (`scoring.js → creditTerms`)
-```
-Expected loss = PD × LGD × Exposure     base PD 3.0% · LGD 45% · PD multiplier A 0.80, B 0.90, C 1.00, D 1.15
-```
-On a HK$3M facility, grade A lowers the bank's expected loss by **HK$8,100 a year**. **HK$7,500** of that is passed to the SME as a 25 bp margin cut, and the bank keeps HK$600 as a buffer.
+### Trust layer (`crypto.js`, `credential.js`, `ledger.js`)
+- **Passport = W3C Verifiable Credential**, signed by the partner bank with **ECDSA P-256** (Web Crypto API).
+- **Private proof:** every answer is sealed as a **salted SHA-256 commitment**; the 20 commitments form a **Merkle tree** and only the root is signed. The start-up can later reveal chosen answers with a Merkle proof; nothing else is revealed.
+- **Measured results** (e.g. "fairness ratio ≥ 0.8"): the start-up commits to the number; the Passport records only *pass*.
+- **Withdrawal:** Passports are re-checked every 90 days. If a control stops being true, the bank withdraws the Passport and every later check fails.
+- **Audit log:** a hash chain of every issue, check and withdrawal. Editing any past entry breaks the chain.
 
 ## Prototype today, production tomorrow
 
-| Component | In this prototype | Production design |
+| Part | In this prototype | In production |
 |---|---|---|
-| Document reading | BM25 retrieval, in-browser | Multimodal LLM agent in a private HK cloud |
-| Rule mapping | BM25 over paraphrased clauses | Hybrid BM25 + vector search over full rule texts |
-| Scoring | Transparent additive model, exact Shapley values | Rules + gradient-boosted model with SHAP |
-| AI checks AI | Rule-based negation and contradiction checker | Second LLM re-checks every finding |
-| Proving without sharing | Salted commitments + Merkle proofs | zk-SNARK proofs in a trusted execution environment |
-| Issuer key | Demo key in the code (clearly labelled) | Hardware security module (HSM) |
-| Ledger | One hash-chain node per browser | Permissioned blockchain shared by partner banks |
+| Reading documents | BM25 matching in the browser (.txt) | Privately hosted AI model reading PDFs, slides and screenshots |
+| Citing rules | Paraphrased rule summaries | Full rule texts with citation checks |
+| Double-checking | Rule-based checker | Second AI model plus human review |
+| Private proof | Salted commitments + Merkle proofs | Zero-knowledge proofs in a secure enclave |
+| Signing key | Demo key in the code (clearly labelled) | Bank's hardware security module |
+| Audit log | One copy per browser | Shared by partner banks (permissioned blockchain) |
 
 ## Run it
 
-It's a static site, so there's nothing to install.
+Static site, no installation.
 
 - **GitHub Pages:** Settings → Pages → *Deploy from a branch* → `main` / root.
-- **Locally:** `python3 -m http.server 8000`, then open `http://localhost:8000`. ES modules don't load from `file://`.
-- **Tests (Node 18+):** `node run-tests.mjs`. 34 tests cover the scoring formula, the credit maths, the agents, Merkle proofs, forged signatures, expiry, revocation and ledger tampering.
+- **Locally:** `python3 -m http.server 8000`, then open `http://localhost:8000` (ES modules don't load from `file://`).
+- **Tests (Node 18+):** `node run-tests.mjs` (34 tests: scoring, action plan, AI agents and suggestions, Merkle proofs, forged signatures, expiry, withdrawal, audit-log tampering).
 
-## Project structure
-
-All files sit at the top level so GitHub Pages can serve them directly.
+## Files
 
 ```
 index.html              App shell
 style.css               Styles
-app.js                  Views, routing, interactions
-config.js               Weights, grades, credit assumptions, issuer registry
-rules.js                HK rule-clause library + 20-control question bank
+app.js                  Screens and interactions
+config.js               Area weights, grades, proof levels, partner bank registry
+rules.js                HK rule library, 20 questions, step-by-step action-plan guidance
 bm25.js                 Tokeniser, stemmer, BM25 ranking
-agents.js               Document, Rule-mapping and Checking agents
-scoring.js              AI Trust Score, Shapley reason codes, what-if, credit terms
+agents.js               Document, Rule-mapping and Checking agents; answer suggestions
+scoring.js              Score, action plan, what-if
 crypto.js               SHA-256, ECDSA, commitments, Merkle tree, compression
-credential.js           Issue / verify / disclose / revoke Passports
-ledger.js               Hash-chained audit ledger
-charts.js               Dependency-free SVG charts
+credential.js           Issue / check / share / withdraw Passports
+ledger.js               Hash-chain audit log
+charts.js               SVG charts
 presets.js              Demo company (NovaPay Ltd, fictional)
-qrcode.js               QR encoder (MIT, Kazuhiko Arase), bundled for offline use
+qrcode.js               QR encoder (MIT, Kazuhiko Arase)
 novapay-ai-policy.txt   Sample AI policy for the demo
 run-tests.mjs           Automated tests
 ```
 
 ## Notes
 
-- NovaPay Ltd is fictional. Rule summaries are short paraphrases written for this prototype. They are **not legal text or legal advice**.
-- The issuer private key in `config.js` is a **demo key**, included so the prototype can issue credentials without a server.
+- NovaPay Ltd is fictional. Rule summaries are short paraphrases for this prototype, **not legal text or legal advice**.
+- The private key in `config.js` is a **demo key** so the prototype can issue Passports without a server.
 - Built from scratch during the BUHack 2.0 hacking window (from 10:00, 13 Nov 2026).
 
 ## License
