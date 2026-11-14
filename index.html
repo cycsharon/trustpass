@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrustPass · AI Trust Passport for Hong Kong start-ups</title>
+  <meta name="description" content="Scan your AI governance against Hong Kong rules, prove it without sharing data, and get a signed AI Trust Passport that banks can verify in seconds.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314213d'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' stroke='%230f9aa8' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="#/" class="brand" aria-label="TrustPass home">
+      <span class="logo">✓</span><span>TrustPass</span>
+    </a>
+    <nav class="steps" aria-label="SME journey">
+      <a href="#/scan" data-route="scan"><b>1</b> Scan</a>
+      <a href="#/evidence" data-route="evidence"><b>2</b> Prove</a>
+      <a href="#/results" data-route="results"><b>3</b> Score</a>
+      <a href="#/review" data-route="review"><b>4</b> Sign-off</a>
+      <a href="#/passport" data-route="passport"><b>5</b> Passport</a>
+    </nav>
+    <nav class="side" aria-label="Other views">
+      <a href="#/bank" data-route="bank">Bank view</a>
+      <a href="#/credit" data-route="credit">Credit</a>
+      <a href="#/ledger" data-route="ledger">Ledger</a>
+      <a href="#/tech" data-route="tech">How it works</a>
+    </nav>
+  </header>
+  <main id="app" tabindex="-1"></main>
+  <footer class="foot">
+    TrustPass prototype · BUHack 2.0 · Runs entirely in your browser: no data leaves your device.
+    Rule summaries are paraphrased for demonstration and are not legal advice.
+  </footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
