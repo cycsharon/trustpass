@@ -43,15 +43,22 @@ function setBaselineIfNone() {
 }
 
 // ---------------- router ----------------
-const routes = { "": home, scan, evidence, results, review, passport, verify: verifyView, bank, ledger: ledgerView, tech };
+const routes = { "": home, scan, evidence, results, review, passport, verify: verifyView, bank, ledger: ledgerView, tech, privacy };
+const STEPS = [["scan", "Answer"], ["evidence", "Prove"], ["results", "Results"], ["review", "Review"], ["passport", "Passport"]];
+function stepper(path) {
+  const i = STEPS.findIndex(x => x[0] === path);
+  if (i < 0) return "";
+  return `<nav class="stepper" aria-label="Steps">${STEPS.map(([r, l], k) => `<a href="#/${r}" class="${k < i ? "done" : k === i ? "now" : ""}"><b>${k < i ? "✓" : k + 1}</b>${l}</a>`).join('<span class="line"></span>')}</nav>`;
+}
 const after = {};
 
 async function render() {
   const [path, query] = location.hash.replace(/^#\/?/, "").split("?");
   const params = new URLSearchParams(query || "");
   const view = routes[path] || home;
-  document.querySelectorAll(".topbar nav a").forEach(a => a.classList.toggle("active", a.dataset.route === path || (path === "verify" && a.dataset.route === "bank")));
-  app.innerHTML = await view(params);
+  const inSteps = STEPS.some(x => x[0] === path);
+  document.querySelectorAll(".topbar nav a").forEach(a => a.classList.toggle("active", a.dataset.route === path || (path === "verify" && a.dataset.route === "bank") || (inSteps && a.dataset.route === "scan")));
+  app.innerHTML = stepper(path) + await view(params);
   after[path]?.(params);
 }
 window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
@@ -67,11 +74,10 @@ function home() {
   return `
   <section class="hero">
     <div>
-      <div class="eyebrow">AI Trust Passport · for Hong Kong start-ups</div>
-      <h1>Prove your AI is safe.<br>Without handing over your data.</h1>
-      <p class="lead">Banks, investors and big clients all ask the same question: <i>"Is your AI under control?"</i>
-      TrustPass checks your AI against Hong Kong's rules in 15 minutes, tells you exactly what to fix,
-      and gives you a Passport you can share with anyone in one link.</p>
+      <div class="eyebrow">For Hong Kong start-ups that sell to banks</div>
+      <h1>Fill in banks' AI questionnaires automatically.</h1>
+      <p class="lead">Before a bank works with you, it sends a long questionnaire about how you use AI. TrustPass reads your own AI policy,
+      fills in the answers for you, shows you what to fix, and turns the result into a Passport you can send to every bank in one link.</p>
       <div class="row" style="margin-top:18px">
         <input type="text" id="company" placeholder="Your company name" value="${esc(S.company)}" style="max-width:260px" aria-label="Company name">
         <button class="btn primary" data-act="start">Start my free check →</button>
@@ -81,37 +87,36 @@ function home() {
         <button class="btn small" data-act="preset" data-p="day1">NovaPay · first check</button>
         <button class="btn small" data-act="preset" data-p="month6">NovaPay · 6 months later</button>
       </div>
+      <p class="cite" style="margin-top:10px">Your documents are read inside your browser and never uploaded.</p>
     </div>
-    <div>${samplePassportHtml()}</div>
+    <div class="card example">
+      <div class="eyebrow">Example: one answer, filled in for you</div>
+      <div class="ex-row"><span class="ex-n">1</span><div><b>Your AI policy says</b><div class="quote">"Under our contracts, AI suppliers are not permitted to use our customers' data for training their models."</div></div></div>
+      <div class="ex-row"><span class="ex-n">2</span><div><b>The bank's question</b><p>Do you stop third-party AI suppliers training on your customers' data?</p></div></div>
+      <div class="ex-row"><span class="ex-n">3</span><div><b>TrustPass answers</b><p><span class="pill strong">Yes</span> and asks you to attach the signed contract clause as proof.</p></div></div>
+      <div class="ex-row"><span class="ex-n">4</span><div><b>Rule source</b><p>PDPO (DPP3: no new use without consent) · PCPD AI Framework</p></div></div>
+    </div>
   </section>
 
-  <section class="grid g4" style="margin-bottom:30px">
-    <div class="stat" style="background:var(--navy)"><b>73.1%</b><span>of surveyed HK FinTechs already use AI</span></div>
-    <div class="stat" style="background:var(--red)"><b>×2</b><span>cyber incidents handled by HKCERT, 2023 → 2025 (15,877)</span></div>
-    <div class="stat" style="background:var(--teal)"><b>140</b><span>questions in a typical bank AI questionnaire, filled in again for every bank</span></div>
-    <div class="stat" style="background:var(--violet)"><b>15 min</b><span>to finish the TrustPass check, then share one Passport everywhere</span></div>
+  <section class="grid g3" style="margin-bottom:26px">
+    <div class="card"><div class="eyebrow">The rule</div><h3>Banks must check their suppliers</h3><p class="muted">HKMA outsourcing rules and AI principles require banks to check any supplier that uses AI, including start-ups.</p></div>
+    <div class="card"><div class="eyebrow">The problem</div><h3>The same questions, again and again</h3><p class="muted">Every bank sends its own long questionnaire. Small teams fill each one in by hand and wait weeks for follow-up questions.</p></div>
+    <div class="card"><div class="eyebrow">The fix</div><h3>Answer once, share everywhere</h3><p class="muted">TrustPass fills in the answers from your documents and gives you one Passport that any bank can check.</p></div>
   </section>
 
-  <section class="card" style="margin-bottom:22px">
+  <section class="card" style="margin-bottom:26px">
     <h2>How it works</h2>
     <div class="flow">
-      ${[["Answer", "20 yes/no questions, or let our AI fill them in from your policy", "var(--teal)", "scan"],
-         ["Prove", "Attach proof files. They never leave your laptop", "var(--violet)", "evidence"],
+      ${[["Answer", "Upload your AI policy. TrustPass fills in the 20 questions; you confirm each one", "var(--teal)", "scan"],
+         ["Prove", "Attach proof files. They are fingerprinted on your laptop, never uploaded", "var(--violet)", "evidence"],
          ["Fix", "A step-by-step action plan for every gap", "#5cb8c2", "results"],
-         ["Passport", "Reviewed by a person, then signed by the partner bank", "var(--navy)", "review"],
-         ["Share", "One link or QR code for banks, investors and clients", "var(--red)", "passport"]]
+         ["Review", "A person checks the answers before anything is issued", "var(--navy)", "review"],
+         ["Share", "One Passport link or QR code for every bank", "var(--red)", "passport"]]
         .map(([t, d, c, r], i) => `<a class="stepbox card flat" href="#/${r}" style="text-decoration:none;color:inherit"><span class="num" style="background:${c}">${i + 1}</span><h3>${t}</h3><small>${d}</small></a>`).join("")}
     </div>
   </section>
 
-  <section class="grid g3">
-    <div class="card"><div class="eyebrow">Save time</div><h3>Answer once, share everywhere</h3>
-      <p class="muted">Stop filling in a new AI questionnaire for each bank, investor and client. Send your Passport link instead.</p></div>
-    <div class="card"><div class="eyebrow">Stay private</div><h3>Your files stay with you</h3>
-      <p class="muted">We never upload your documents. People who check your Passport see results and proof that it's genuine, not your files.</p></div>
-    <div class="card"><div class="eyebrow">Know what to do</div><h3>A clear action plan</h3>
-      <p class="muted">Every gap comes with plain steps, what to keep as proof, how long it takes, and the Hong Kong rule behind it.</p></div>
-  </section>`;
+  <div class="center"><button class="btn primary" data-act="preset" data-p="day1">Try the demo with NovaPay →</button></div>`;
 }
 
 function samplePassportHtml() {
@@ -439,6 +444,7 @@ function review() {
   </div>`;
 }
 after.review = () => {
+  if (!document.getElementById("analyst")) return;
   const update = () => {
     const ok = [...document.querySelectorAll(".chk")].every(c => c.checked)
       && document.getElementById("analyst").value.trim().length > 1
@@ -667,6 +673,41 @@ function tech() {
       <li><b>Governance only:</b> no financial data, no credit opinion</li></ul></div>
     <div class="card"><h3>Tested</h3><p class="muted">Automated tests cover the scoring, the AI agents (including catching "we have not yet…"), the suggested answers, fingerprints and Merkle proofs, forged signatures, expiry, withdrawal and audit-log tampering.</p><p><code>node run-tests.mjs</code></p></div>
   </div>`;
+}
+
+// ---------------- PRIVACY ----------------
+function privacy() {
+  return `
+  <article class="policy">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: 15 November 2026</p>
+    <p>This Privacy Policy explains how TrustPass ("we", "us" or "our") handles information when you use the TrustPass website (the "Service"). By using the Service, you agree to the practices described below.</p>
+    <h2>1. Information we collect</h2>
+    <p>We do not ask you to create an account, and we do not collect your name, email address or other contact details.</p>
+    <p>When you use the Service, you may enter your company name, answer questions, paste or upload policy documents, and attach proof files. Documents and proof files are read within your web browser and are not transmitted to us. For proof files, the Service keeps only a digital fingerprint (a cryptographic hash), not the file itself.</p>
+    <h2>2. How we use information</h2>
+    <p>Information you enter is used solely to provide the Service, namely to suggest answers, calculate results, prepare an action plan and issue a Passport. We do not use it for marketing, profiling or the training of any artificial intelligence model.</p>
+    <h2>3. Storage and retention</h2>
+    <p>Your answers, file fingerprints, Passports and audit log are stored in your browser's local storage on your device so that they remain available when you return. They are kept until you delete them, which you may do at any time by clearing your browser's site data.</p>
+    <h2>4. Sharing a Passport</h2>
+    <p>When you share a Passport link or QR code, the recipient can see the results you chose to disclose and proof that the Passport is genuine. They cannot see your documents or proof files. You decide what to share and with whom.</p>
+    <h2>5. Disclosure of information</h2>
+    <p>We do not sell, rent, share or transfer your information to any third party, whether in Hong Kong or elsewhere.</p>
+    <h2>6. Cookies and analytics</h2>
+    <p>The Service does not use cookies, analytics tools, advertising technologies or third-party tracking scripts.</p>
+    <h2>7. Hosting</h2>
+    <p>The Service is hosted on GitHub Pages. GitHub may automatically collect limited technical information, such as IP addresses, in accordance with the GitHub Privacy Statement. We do not have access to this information.</p>
+    <h2>8. Security</h2>
+    <p>The Service is delivered over an encrypted HTTPS connection. Passports are digitally signed so that changes can be detected. As information is stored on your device, you are responsible for securing access to that device.</p>
+    <h2>9. Your rights</h2>
+    <p>Under the Personal Data (Privacy) Ordinance (Cap. 486), you may request access to, and correction of, personal data held about you. As we do not hold your information, you may view, correct or delete it directly within the Service.</p>
+    <h2>10. Disclaimer</h2>
+    <p>The Service is a prototype developed for BUHack 2.0 for demonstration purposes only. NovaPay and the partner bank shown are fictional. Summaries of laws and regulatory guidance are provided for reference only and do not constitute legal advice. A Passport assesses AI governance only and is not a credit rating.</p>
+    <h2>11. Changes to this policy</h2>
+    <p>We may update this Privacy Policy from time to time. The updated version will be indicated by the "Last updated" date above.</p>
+    <h2>12. Contact us</h2>
+    <p>If you have any questions about this Privacy Policy, please contact the TrustPass team through our GitHub repository.</p>
+  </article>`;
 }
 
 // ---------------- events ----------------
